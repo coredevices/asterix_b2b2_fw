@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 
+set(PICO_BOARD_HEADER_DIRS ${CMAKE_CURRENT_LIST_DIR}/include/boards)
+set(PICO_BOARD asterix_b2b2)
+
 include(pico_sdk_import.cmake)
 
 set(FREERTOS_KERNEL_PATH ${CMAKE_CURRENT_LIST_DIR}/freertos)
@@ -49,23 +52,12 @@ target_compile_definitions (debugprobe PRIVATE
 	PICO_RP2040_USB_DEVICE_ENUMERATION_FIX=1
 )
 
-option (DEBUG_ON_PICO "Compile firmware for the Pico instead of Debug Probe" OFF)
-if (DEBUG_ON_PICO)
-    target_compile_definitions (debugprobe PRIVATE
-	DEBUG_ON_PICO=1
-    )
-    if (PICO_BOARD STREQUAL "pico")
-        set_target_properties(debugprobe PROPERTIES
-            OUTPUT_NAME "debugprobe_on_pico"
-        )
-    elseif (PICO_BOARD STREQUAL "pico2")
-        set_target_properties(debugprobe PROPERTIES
-            OUTPUT_NAME "debugprobe_on_pico2"
-        )
-    else ()
-        message(SEND_ERROR "Unsupported board ${PICO_BOARD}")
-    endif ()
-endif ()
+target_compile_definitions (debugprobe PRIVATE
+	DEBUG_ASTERIX_B2B2=1
+)
+set_target_properties(debugprobe PROPERTIES
+	OUTPUT_NAME "asterix_b2b2"
+)
 
 
 target_link_libraries(debugprobe PRIVATE
@@ -79,6 +71,7 @@ target_link_libraries(debugprobe PRIVATE
         FreeRTOS-Kernel-Heap1
 )
 
+# pico_set_binary_type(debugprobe no_flash)
 pico_set_binary_type(debugprobe copy_to_ram)
 
 pico_add_extra_outputs(debugprobe)
