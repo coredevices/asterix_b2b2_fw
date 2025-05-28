@@ -1,7 +1,7 @@
 # Debugprobe
 
 Firmware source for the Raspberry Pi Debug Probe SWD/UART accessory,
-modified to run on `asterix_b2b2`.
+modified to run on `asterix_b2b2v2`.
 
 [Raspberry Pi Debug Probe product page](https://www.raspberrypi.com/products/debug-probe/)
 
@@ -40,7 +40,7 @@ Run cmake and build the code:
  cmake -B build -DPICO_SDK_FETCH_FROM_GIT=on -DPICOTOOL_FORCE_FETCH_FROM_GIT=1
  make -C build
 ```
-Done! You should now have a `asterix_b2b2.uf2` that you can upload to your Debug Probe via the UF2 bootloader.
+Done! You should now have a `asterix_b2b2v2.uf2` that you can upload to your Debug Probe via the UF2 bootloader.
 
 # TODO
 - AutoBaud selection, as PIO is a capable frequency counter

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 set(PICO_BOARD_HEADER_DIRS ${CMAKE_CURRENT_LIST_DIR}/include/boards)
-set(PICO_BOARD asterix_b2b2)
+set(PICO_BOARD asterix_b2b2v2)
 
 include(pico_sdk_import.cmake)
 
@@ -53,10 +53,10 @@ target_compile_definitions (debugprobe PRIVATE
 )
 
 target_compile_definitions (debugprobe PRIVATE
-	DEBUG_ASTERIX_B2B2=1
+	DEBUG_ASTERIX_B2B2V2=1
 )
 set_target_properties(debugprobe PROPERTIES
-	OUTPUT_NAME "asterix_b2b2"
+	OUTPUT_NAME "asterix_b2b2v2"
 )
 
 
