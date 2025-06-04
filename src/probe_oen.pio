@@ -1,13 +1,16 @@
 ; SPDX-License-Identifier: MIT
 ; Copyright (c) 2023 Raspberry Pi Ltd
+;
+; Modified by Core Devices for output-enable driven active-high.
 
-; Output-enable active-low variant of the SWD probe
+; Output-enable active-high variant of the SWD probe (previously it was
+; "OEn", now it is "OEN"!).
 
 ; This program is very similar to the one in probe.pio. The only difference is
 ; that here write_cmd and turnaround_cmd are split into two separate routines,
-; whose difference is OEn being high/low.
+; whose difference is OE being high/low.
 
-; SWDIO_OEn is pin 0, SWCLK pin 1, SWDIO (out) pin 2, SWDI (in) pin 3.
+; SWDIO_OEN is pin 0, SWCLK pin 1, SWDIO (out) pin 2, SWDI (in) pin 3.
 ; Pin 0 and 1 are sideset pins
 
 .program probe
@@ -16,19 +19,19 @@
 public turnaround_cmd:
     pull
 turnaround_bitloop:
-    nop                         [1]  side 0x1
-    jmp x-- turnaround_bitloop  [1]  side 0x3
+    nop                         [1]  side 0x0
+    jmp x-- turnaround_bitloop  [1]  side 0x2
     jmp get_next_cmd
 
 public write_cmd:
     pull
 write_bitloop:
-    out pins, 1                 [1]  side 0x0   ; Data is output by host on negedge
-    jmp x-- write_bitloop       [1]  side 0x2   ; ...and captured by target on posedge
+    out pins, 1                 [1]  side 0x1   ; Data is output by host on negedge
+    jmp x-- write_bitloop       [1]  side 0x3   ; ...and captured by target on posedge
                                                 ; Fall through to next command
 .wrap_target
 public get_next_cmd:
-    pull                             side 0x1   ; SWCLK initially low, OEn disabled
+    pull                             side 0x0   ; SWCLK initially low, OE disabled
     out x, 8                                    ; Get bit count
     out pindirs, 1                              ; Set SWDIO direction
     out pc, 5                                   ; Go to command routine
@@ -36,8 +39,8 @@ public get_next_cmd:
 read_bitloop:
     nop                                         ; Additional delay on taken loop branch
 public read_cmd:
-    in pins, 1                  [1]  side 0x3   ; Data is captured by host on posedge
-    jmp x-- read_bitloop             side 0x1
+    in pins, 1                  [1]  side 0x2   ; Data is captured by host on posedge
+    jmp x-- read_bitloop             side 0x0
     push
 .wrap                                           ; Wrap to next command
 
@@ -60,7 +63,7 @@ static inline void probe_gpio_init()
 
     // Make sure SWDIO has a pullup on it. Idle state is high
     gpio_pull_up(PROBE_PIN_SWDIO);
-    gpio_pull_up(PROBE_PIN_SWDIOEN);
+    gpio_pull_down(PROBE_PIN_SWDIOEN);
 }
 
 // DAP interface says all pins have to be High-Z when disabled
