@@ -44,6 +44,7 @@
 #include "get_serial.h"
 #include "tusb_edpt_handler.h"
 #include "DAP.h"
+#include "hardware/watchdog.h"
 #include "hardware/structs/usb.h"
 
 // UART0 for debugprobe debug
@@ -51,6 +52,8 @@
 
 static uint8_t TxDataBuffer[CFG_TUD_HID_EP_BUFSIZE];
 static uint8_t RxDataBuffer[CFG_TUD_HID_EP_BUFSIZE];
+
+#define WATCHDOG_TIMEOUT_MS 2000
 
 #define THREADED 1
 
@@ -74,6 +77,14 @@ void dev_mon(void *ptr)
         if (tud_connected() && !tud_suspended()) {
             sof[i++] = usb_hw->sof_rd & USB_SOF_RD_BITS;
             i = i % 3;
+            
+            // If we are connected to USB at all, and the RTOS is alive,
+            // kick the WDT.  If the RTOS is dead, of course there's nothing
+            // to be done about it, and we should reboot before anyone
+            // notices; if we're not connected to USB, something is wrong,
+            // and we need to reset anyway, because nominally we are
+            // USB-powered!
+            watchdog_update();
         } else {
             for (i = 0; i < 3; i++)
                 sof[i] = 0;
@@ -137,9 +148,8 @@ int main(void) {
 
     if (THREADED) {
         xTaskCreate(usb_thread, "TUD", configMINIMAL_STACK_SIZE, NULL, TUD_TASK_PRIO, &tud_taskhandle);
-#if PICO_RP2040
+        watchdog_enable(WATCHDOG_TIMEOUT_MS, 0); /* reboot after 2s of being disconnected from USB, or otherwise being hung */
         xTaskCreate(dev_mon, "WDOG", configMINIMAL_STACK_SIZE, NULL, TUD_TASK_PRIO, &mon_taskhandle);
-#endif
         vTaskStartScheduler();
     }
 
